@@ -1,557 +1,122 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Monthly Cycle Shift Schedule</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shift Schedule</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
-:root{--bg-dark:#2c3e50;--card-dark:#34495e;--text-light:#ecf0f1;--text-secondary-dark:#bdc3c7;--border-dark:#4a6572;--primary-blue:#5dade2;--white:#ffffff;--accent-day:#f5b041;--accent-night:#5dade2;--accent-off:#ec7063;--accent-leave:#f7dc6f;--button-bg:var(--primary-blue);--button-hover-bg:#2e86c1;--button-disabled-bg:#566573;}
-body{font-family:'Roboto',sans-serif;margin:0;padding:15px;background-color:var(--bg-dark);color:var(--text-light);line-height:1.6;}
-.header{text-align:center;margin-bottom:25px;padding:20px 15px;background:var(--card-dark);color:var(--white);border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.3);border-top:4px solid var(--primary-blue);}
-.header h1{margin:0 0 8px 0;font-size:1.9em;font-weight:700;}
-.header p#dateRangeDisplay{margin:5px 0 15px 0;font-size:1.1em;color:var(--text-secondary-dark);font-weight:500;min-height:1.2em;}
-.controls{margin-bottom:15px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:15px;}
-.controls label{font-weight:500;color:var(--text-secondary-dark);margin-right:-8px;}
-.controls select,#editToggleBtn{padding:9px 13px;background-color:var(--bg-dark);color:var(--text-light);border:1px solid var(--border-dark);border-radius:6px;font-size:0.95em;font-family:inherit;cursor:pointer;min-width:110px;box-shadow:inset 0 1px 3px rgba(0,0,0,0.2);}
-.controls select:focus,#editToggleBtn:focus{outline:none;border-color:var(--primary-blue);box-shadow:0 0 6px rgba(93,173,226,0.6);}
-#editToggleBtn{background-color:var(--button-bg);color:var(--white);border:none;font-weight:700;transition:background-color 0.2s ease,transform 0.1s ease;box-shadow:0 2px 5px rgba(0,0,0,0.2);}
-#editToggleBtn:hover{background-color:var(--button-hover-bg);transform:translateY(-1px);}
-#editToggleBtn:active{transform:translateY(0px);}
-#editToggleBtn:disabled{background-color:var(--button-disabled-bg);cursor:not-allowed;opacity:0.7;box-shadow:none;transform:none;}
-#editStatus{display:block;text-align:center;margin-top:12px;font-size:0.9em;color:var(--accent-day);font-weight:500;min-height:1em;}
-.schedule-container{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:25px;}
-.day-card{background-color:var(--card-dark);border-radius:10px;padding:20px 25px;box-shadow:0 6px 16px rgba(0,0,0,0.3);border:1px solid var(--border-dark);transition:transform 0.25s ease,box-shadow 0.25s ease;display:flex;flex-direction:column;}
-.day-card:hover{box-shadow:0 10px 25px rgba(0,0,0,0.4);}
-.day-card h3{margin:0 0 18px 0;color:var(--white);border-bottom:1px solid var(--border-dark);padding-bottom:12px;font-size:1.35em;font-weight:700;display:flex;justify-content:space-between;align-items:baseline;}
-.day-card h3 .weekday{font-size:0.8em;color:var(--text-secondary-dark);font-weight:500;}
-.section{margin-top:15px;padding:15px;border-radius:8px;border-left:7px solid;background-color:rgba(0,0,0,0.2);transition:background-color 0.2s ease,transform 0.15s ease;}
-.section.editable{cursor:pointer;}
-.section.editable:hover{background-color:rgba(0,0,0,0.3);transform:scale(1.01);}
-.section strong{display:block;margin-bottom:10px;font-size:1.1em;font-weight:700;letter-spacing:0.5px;color:var(--white);}
-.section span{font-size:1.0em;display:block;line-height:1.7;padding-left:10px;color:var(--text-light);font-weight:700;position:relative;word-wrap:break-word;}
-.section span::before{content:'›';position:absolute;left:-2px;top:0px;font-size:1em;color:var(--text-secondary-dark);opacity:0.8;}
-.section span.empty{font-style:italic;color:var(--text-secondary-dark);opacity:0.7;font-weight:500;}
-.section span.empty::before{content:'';}
-.day-shift{border-left-color:var(--accent-day);}
-.day-shift strong{color:var(--accent-day);}
-.night-shift{border-left-color:var(--accent-night);}
-.night-shift strong{color:var(--accent-night);}
-.off-section{border-left-color:var(--accent-off);}
-.off-section strong{color:var(--accent-off);}
-.leave-section{border-left-color:var(--accent-leave);}
-.leave-section strong{color:var(--accent-leave);}
-
-/* --- Custom Modal Styles --- */
-.modal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 100; /* Sit on top */
-    left: 0;
-    top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgba(0,0,0,0.7); /* Black w/ opacity */
-    backdrop-filter: blur(5px); /* Optional blur effect */
-    -webkit-backdrop-filter: blur(5px); /* Safari support */
-    justify-content: center; /* Center horizontally */
-    align-items: center; /* Center vertically */
-    padding: 15px; /* Add padding for smaller screens */
-}
-
-.modal-content {
-    background-color: var(--card-dark);
-    /* margin: 15% auto; Removed margin-top to help with centering */
-    padding: 25px;
-    border: 1px solid var(--border-dark);
-    border-radius: 10px;
-    width: 90%; /* Make it wider on smaller screens */
-    max-width: 400px; /* Max width */
-    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-    color: var(--text-light);
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    box-sizing: border-box; /* Include padding and border in the element's total width and height */
-}
-.modal-content h4 {
-    margin-top: 0;
-    color: var(--primary-blue);
-    font-size: 1.2em;
-    font-weight: 700;
-    text-align: center;
-}
-.modal-content label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 500;
-    color: var(--text-secondary-dark);
-}
-.modal-content textarea {
-    width: 100%; /* Make it 100% width of container */
-    padding: 10px;
-    margin-bottom: 5px; /* Reduced margin-bottom */
-    border-radius: 5px;
-    border: 1px solid var(--border-dark);
-    background-color: var(--bg-dark);
-    color: var(--text-light);
-    font-family: inherit;
-    font-size: 1em;
-    resize: vertical; /* Allow vertical resize */
-    min-height: 80px;
-    box-sizing: border-box; /* Include padding and border in the element's total width and height */
-}
-.modal-content .modal-available-staff {
-    font-size: 0.9em;
-    color: var(--text-secondary-dark);
-    margin-bottom: 15px;
-    word-break: break-word;
-}
-.modal-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-}
-.modal-buttons button {
-    padding: 8px 15px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-family: inherit;
-    font-weight: 500;
-    transition: background-color 0.2s ease;
-}
-.modal-buttons .save-button {
-    background-color: var(--primary-blue);
-    color: var(--white);
-}
-.modal-buttons .save-button:hover {
-    background-color: var(--button-hover-bg);
-}
-.modal-buttons .cancel-button {
-    background-color: var(--border-dark);
-    color: var(--text-light);
-}
-.modal-buttons .cancel-button:hover {
-    background-color: #566573;
-}
+:root{--b1:#2c3e50;--b2:#34495e;--t1:#ecf0f1;--t2:#bdc3c7;--brd:#4a6572;--blu:#5dade2;--w:#fff;--day:#f5b041;--nht:#5dade2;--off:#ec7063;--lv:#f7dc6f;--btn:#5dade2;--btn-h:#2e86c1;--btn-d:#566573}
+body{font-family:Roboto,sans-serif;margin:0;padding:8px;background-color:var(--b1);color:var(--t1);line-height:1.4;font-size:14px;}
+.header{text-align:center;margin-bottom:12px;padding:10px;background:var(--b2);border-radius:5px;box-shadow:0 2px 8px rgba(0,0,0,.2);border-top:2px solid var(--blu);}
+.header h1{margin:0 0 3px 0;font-size:1.3em;font-weight:700;}
+.header p#dr{margin:3px 0 6px 0;font-size:0.85em;color:var(--t2);font-weight:500;min-height:1em;}
+.ctrl{margin-bottom:6px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px;}
+.ctrl label{font-weight:500;color:var(--t2);margin-right:-3px;font-size:0.8em;}
+.ctrl select,.ctrl button{padding:6px 8px;background-color:var(--b1);color:var(--t1);border:1px solid var(--brd);border-radius:4px;font-size:0.8em;font-family:inherit;cursor:pointer;min-width:70px;box-shadow:inset 0 1px 1px rgba(0,0,0,.1);transition:all .15s ease;}
+.ctrl select:focus,.ctrl button:focus{outline:0;border-color:var(--blu);box-shadow:0 0 3px rgba(93,173,226,.4);}
+#eb,#sb{color:var(--w);border:0;font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,.15);}
+#eb{background-color:var(--btn);} #eb:hover{background-color:var(--btn-h);transform:translateY(-1px);}
+#eb:disabled{background-color:var(--btn-d);cursor:not-allowed;opacity:.7;box-shadow:none;transform:none;}
+#sb{background-color:#1abc9c;} #sb:hover{background-color:#16a085;transform:translateY(-1px);}
+#sb:disabled{background-color:#95a5a6;cursor:not-allowed;opacity:.7;box-shadow:none;transform:none;}
+#es{display:block;text-align:center;margin-top:5px;font-size:0.75em;font-weight:500;min-height:1em;}
+.sc{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;}
+.dc{background-color:var(--b2);border-radius:5px;padding:10px 12px;box-shadow:0 2px 6px rgba(0,0,0,.2);border:1px solid var(--brd);transition:all .15s ease;display:flex;flex-direction:column;}
+.dc:hover{box-shadow:0 4px 10px rgba(0,0,0,.3);}
+.dc h3{margin:0 0 8px 0;color:var(--w);border-bottom:1px solid var(--brd);padding-bottom:5px;font-size:1em;font-weight:700;display:flex;justify-content:space-between;align-items:baseline;}
+.dc h3 span.dt { margin-right: 5px; }
+.dc h3 span.wd{font-size:0.75em;color:var(--t2);font-weight:500;}
+.sec{margin-top:8px;padding:8px;border-radius:4px;border-left:3px solid;background-color:rgba(0,0,0,.15);transition:all .1s ease;}
+.sec.ed{cursor:pointer;} .sec.ed:hover{background-color:rgba(0,0,0,.25);transform:scale(1.01);}
+.sec strong{display:block;margin-bottom:5px;font-size:0.9em;font-weight:700;color:var(--w);}
+.sec span{font-size:0.85em;display:block;line-height:1.4;padding-left:5px;color:var(--t1);font-weight:400;position:relative;word-wrap:break-word;}
+.sec span::before{content:'›';position:absolute;left:-3px;top:0;font-size:0.8em;color:var(--t2);opacity:.6;}
+.sec span.em{font-style:italic;color:var(--t2);opacity:.6;font-weight:400;} .sec span.em::before{content:'';}
+.d{border-left-color:var(--day);} .d strong{color:var(--day);}
+.n{border-left-color:var(--nht);} .n strong{color:var(--nht);}
+.o{border-left-color:var(--off);} .o strong{color:var(--off);}
+.l{border-left-color:var(--lv);} .l strong{color:var(--lv);}
+.m{display:none;position:fixed;z-index:100;left:0;top:0;width:100%;height:100%;background-color:rgba(0,0,0,.6);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);justify-content:center;align-items:center;padding:10px;}
+.mc{background-color:var(--b2);padding:12px;border:1px solid var(--brd);border-radius:5px;width:90%;max-width:340px;box-shadow:0 4px 12px rgba(0,0,0,.3);color:var(--t1);display:flex;flex-direction:column;gap:8px;box-sizing:border-box;}
+.mc h4{margin:0;color:var(--blu);font-size:1em;font-weight:700;text-align:center;}
+.mc > label{display:block;margin-bottom:2px;font-weight:500;color:var(--t2);font-size:0.8em;}
+#scc{max-height:110px;overflow-y:auto;border:1px solid var(--brd);padding:5px;border-radius:4px;background-color:var(--b1);margin-bottom:5px;}
+#scc div{margin-bottom:4px;display:flex;align-items:center;}
+#scc input[type=checkbox]{margin-right:5px;cursor:pointer;width:13px;height:13px;flex-shrink:0;}
+#scc label{margin:0;cursor:pointer;flex-grow:1;color:var(--t1);font-weight:400;font-size:0.85em;}
+#mas{font-size:0.75em;color:var(--t2);word-break:break-word;min-height:1em;margin-bottom:6px;}
+.mb{display:flex;justify-content:flex-end;gap:5px;}
+.mb button{padding:5px 10px;border:0;border-radius:4px;cursor:pointer;font-family:inherit;font-weight:500;transition:background-color .15s ease;font-size:0.8em;}
+.sv{background-color:var(--btn);color:var(--w);} .sv:hover{background-color:var(--btn-h);}
+.cn{background-color:var(--brd);color:var(--t1);} .cn:hover{background-color:#566573;}
 </style>
 </head>
 <body>
-<div class="header">
-<h1>Yoga Management SSO's Daily Shift Schedule</h1>
-<p id="dateRangeDisplay">Select Starting Month and Year</p>
-<div class="controls">
-<label for="monthSelect">Starting Month:</label>
-<select id="monthSelect"></select>
-<label for="yearSelect">Starting Year:</label>
-<select id="yearSelect"></select>
-<button id="editToggleBtn">Enable Editing</button>
-</div>
-<span id="editStatus">Editing is disabled.</span>
-</div>
-<div id="schedule-container" class="schedule-container">
-</div>
-
-<!-- Custom Modal for Editing -->
-<div id="editModal" class="modal">
-    <div class="modal-content">
-        <h4 id="modalSectionTitle">Edit Section</h4>
-        <label for="staffInput">Staff Names (comma separated):</label>
-        <textarea id="staffInput"></textarea>
-        <div id="modalAvailableStaff" class="modal-available-staff"></div>
-        <div class="modal-buttons">
-            <button class="cancel-button">Cancel</button>
-            <button class="save-button">Save</button>
-        </div>
-    </div>
-</div>
+<div class="header"><h1>Shift Schedule</h1><p id="dr">Select Month/Year</p><div class="ctrl"><label for="ms">Month:</label><select id="ms"></select><label for="ys">Year:</label><select id="ys"></select><button id="eb">Password</button><button id="sb">Share Link</button></div><span id="es">Status</span></div>
+<div id="sc" class="sc"></div>
+<div id="em" class="m"><div class="mc"><h4 id="mt">Edit</h4><label>Assign Staff:</label><div id="scc"></div><div id="mas"></div><div class="mb"><button class="cn">Cancel</button><button class="sv">Save</button></div></div></div>
 
 <script>
-// --- Configuration ---
-const DEFAULT_ADMIN_CODE = "admin"; // Initial password, used only once
-const PASSWORD_STORAGE_KEY = 'adminPassword_YogaAppV2'; // Key to store the actual password
-// The default staff list is now EMPTY as requested.
-// This list is ONLY for suggestion in the modal, not for validation during save.
-const allStaff = []; // *** CLEARED AS REQUESTED ***
-const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-let editingEnabled = false; // Global state for editing
-
-// --- DOM Elements ---
-const monthSelect = document.getElementById('monthSelect');
-const yearSelect = document.getElementById('yearSelect');
-const container = document.getElementById('schedule-container');
-const editToggleButton = document.getElementById('editToggleBtn');
-const editStatusSpan = document.getElementById('editStatus');
-const dateRangeDisplay = document.getElementById('dateRangeDisplay');
-
-// Modal Elements
-const editModal = document.getElementById('editModal');
-const modalSectionTitle = document.getElementById('modalSectionTitle');
-const staffInput = document.getElementById('staffInput');
-const modalAvailableStaff = document.getElementById('modalAvailableStaff');
-const saveButton = editModal.querySelector('.save-button');
-const cancelButton = editModal.querySelector('.cancel-button');
-
-// --- State Variables ---
-let currentStartYear, currentStartMonth; // 0-indexed month (0=Jan)
-let scheduleData = {}; // Holds schedule for the currently viewed cycle
-let currentEditDate = null; // Date string being edited
-let currentEditType = null; // Type (day, night, off, leave) being edited
-
-// --- Date and Helper Functions ---
-function populateSelectors() {
-    const currentSysYear = new Date().getFullYear();
-    monthNames.forEach((name, index) => {
-        const option = document.createElement('option');
-        option.value = index; option.textContent = name; monthSelect.appendChild(option);
-    });
-    for (let i = currentSysYear - 2; i <= currentSysYear + 3; i++) { // Year range
-        const option = document.createElement('option');
-        option.value = i; option.textContent = i; yearSelect.appendChild(option);
-    }
-    // Set default to start the cycle covering April 21, 2024
-    const defaultStartYear = 2024;
-    const defaultStartMonth = 3; // April (0-indexed)
-    yearSelect.value = defaultStartYear;
-    monthSelect.value = defaultStartMonth;
-    currentStartYear = parseInt(yearSelect.value);
-    currentStartMonth = parseInt(monthSelect.value);
-}
-
-function generateShiftPeriodDates(startYear, startMonth) {
-    const dates = [];
-    // Start Date: 21st of the selected startMonth, set to noon
-    let currentDate = new Date(startYear, startMonth, 21, 12, 0, 0);
-
-    // End Date: 20th of the *next* month, set to noon
-    let endMonth = startMonth + 1;
-    let endYear = startYear;
-    if (endMonth > 11) { // Handle year rollover (December -> January)
-        endMonth = 0;
-        endYear++;
-    }
-    const endDate = new Date(endYear, endMonth, 20, 12, 0, 0);
-
-    // Loop while currentDate is on or before the endDate
-    while (currentDate <= endDate) {
-        dates.push(currentDate.toISOString().split('T')[0]); // Format: YYYY-MM-DD
-        currentDate.setDate(currentDate.getDate() + 1); // Move to the next day
-    }
-    return dates;
-}
-
-function getStorageKey(year, startMonth) { // Key based on the START month of the cycle
-     return `shiftSchedule_CycleV2_${year}_${String(startMonth + 1).padStart(2, '0')}`;
-}
-
-function loadSchedule(year, startMonth) {
-    const key = getStorageKey(year, startMonth);
-    const storedData = localStorage.getItem(key);
-    if (storedData) {
-        try {
-            scheduleData = JSON.parse(storedData);
-             // Ensure every date in the cycle is represented in scheduleData
-             const datesInCycle = generateShiftPeriodDates(year, startMonth);
-             datesInCycle.forEach(dateStr => {
-                 if (!scheduleData[dateStr]) {
-                     scheduleData[dateStr] = { dayShift: [], nightShift: [], off: [], leave: [] };
-                 }
-             });
-
-        } catch (e) {
-            console.error("Error parsing schedule data from localStorage", e);
-            scheduleData = {}; // Reset if data is corrupted
-             // Re-initialize empty structure for this cycle
-             const datesInCycle = generateShiftPeriodDates(year, startMonth);
-             datesInCycle.forEach(dateStr => {
-                 scheduleData[dateStr] = { dayShift: [], nightShift: [], off: [], leave: [] };
-             });
-        }
-    } else {
-        // Initialize empty structure if no data found for this cycle
-        const datesInCycle = generateShiftPeriodDates(year, startMonth);
-        scheduleData = {};
-        datesInCycle.forEach(dateStr => {
-             // *** IMPORTANT: Removing the specific example data for 2024-04-21
-             // as the default staff list is now empty.
-             scheduleData[dateStr] = { dayShift: [], nightShift: [], off: [], leave: [] };
-        });
-        // Optional: Save the initial empty structure right away
-        // saveSchedule();
-    }
-}
-
-function saveSchedule() {
-    const key = getStorageKey(currentStartYear, currentStartMonth);
+const PKEY='adminPwd_YAV5', STAFF=["Vijay","Madan","Saravanan","Vettri","Franklin","Antony","Ganesan","Mohan","Manikandan"];
+const DEFS={ // d=day, n=night, o=off
+"2025-04-21":{d:["Vijay","Madan","Saravanan"],n:["Vettri","Franklin","Antony","Ganesan"],o:["Mohan","Manikandan"]},"2025-04-22":{d:["Vijay","Madan","Manikandan","Mohan"],n:["Vettri","Franklin","Antony"],o:["Ganesan","Saravanan"]},
+"2025-04-23":{d:["Ganesan","Madan","Mohan","Manikandan"],n:["Vettri","Franklin","Antony","Saravanan"],o:["Vijay"]},"2025-04-24":{d:["Ganesan","Vijay","Mohan","Manikandan"],n:["Madan","Franklin","Antony","Saravanan"],o:["Vettri"]},
+"2025-04-25":{d:["Ganesan","Vijay","Mohan","Manikandan"],n:["Madan","Franklin","Vettri","Saravanan"],o:["Antony"]},"2025-04-26":{d:["Ganesan","Vijay","Mohan","Manikandan"],n:["Madan","Antony","Vettri","Saravanan"],o:["Franklin"]},
+"2025-04-27":{d:["Ganesan","Vijay","Mohan","Manikandan"],n:["Franklin","Antony","Vettri","Saravanan"],o:["Madan"]},"2025-04-28":{d:["Vijay","Madan","Ganesan"],n:["Vettri","Franklin","Antony","Saravanan"],o:["Mohan","Manikandan"]},
+"2025-04-29":{d:["Vijay","Madan","Manikandan","Mohan"],n:["Vettri","Franklin","Antony"],o:["Ganesan","Saravanan"]},"2025-04-30":{d:["Ganesan","Madan","Mohan","Manikandan"],n:["Vettri","Franklin","Antony","Saravanan"],o:["Vijay"]},
+"2025-05-01":{d:["Ganesan","Vijay","Mohan","Manikandan"],n:["Madan","Franklin","Antony","Saravanan"],o:["Vettri"]},"2025-05-02":{d:["Ganesan","Vijay","Mohan","Manikandan"],n:["Madan","Franklin","Vettri","Saravanan"],o:["Antony"]},
+"2025-05-03":{d:["Ganesan","Vijay","Mohan","Manikandan"],n:["Madan","Antony","Vettri","Saravanan"],o:["Franklin"]},"2025-05-04":{d:["Ganesan","Vijay","Mohan","Manikandan"],n:["Franklin","Antony","Vettri","Saravanan"],o:["Madan"]},
+"2025-05-05":{d:["Vijay","Madan","Ganesan"],n:["Vettri","Franklin","Antony","Saravanan"],o:["Mohan","Manikandan"]},"2025-05-06":{d:["Vijay","Madan","Manikandan","Mohan"],n:["Vettri","Franklin","Antony"],o:["Ganesan","Saravanan"]},
+"2025-05-07":{d:["Ganesan","Madan","Mohan","Manikandan"],n:["Vettri","Franklin","Antony","Saravanan"],o:["Vijay"]},"2025-05-08":{d:["Ganesan","Vijay","Mohan","Manikandan"],n:["Madan","Franklin","Antony","Saravanan"],o:["Vettri"]},
+"2025-05-09":{d:["Ganesan","Vijay","Mohan","Manikandan"],n:["Madan","Franklin","Vettri","Saravanan"],o:["Antony"]},"2025-05-10":{d:["Ganesan","Vijay","Mohan","Manikandan"],n:["Madan","Franklin","Vettri","Saravanan"],o:["Franklin"]},
+"2025-05-11":{d:["Ganesan","Vijay","Mohan","Manikandan"],n:["Franklin","Antony","Vettri","Saravanan"],o:["Madan"]},"2025-05-12":{d:["Vijay","Madan","Ganesan"],n:["Vettri","Franklin","Antony","Saravanan"],o:["Mohan","Manikandan"]},
+"2025-05-13":{d:["Vijay","Madan","Manikandan","Mohan"],n:["Vettri","Franklin","Antony"],o:["Ganesan","Saravanan"]},"2025-05-14":{d:["Ganesan","Madan","Mohan","Manikandan"],n:["Vettri","Franklin","Antony","Saravanan"],o:["Vijay"]},
+"2025-05-15":{d:["Ganesan","Vijay","Mohan","Manikandan"],n:["Madan","Franklin","Antony","Saravanan"],o:["Vettri"]},"2025-05-16":{d:["Ganesan","Vijay","Mohan","Manikandan"],n:["Madan","Franklin","Vettri","Saravanan"],o:["Antony"]},
+"2025-05-17":{d:["Ganesan","Vijay","Mohan","Manikandan"],n:["Madan","Antony","Vettri","Saravanan"],o:["Franklin"]},"2025-05-18":{d:["Ganesan","Vijay","Mohan","Manikandan"],n:["Franklin","Antony","Vettri","Saravanan"],o:["Madan"]},
+"2025-05-19":{d:["Vijay","Madan","Ganesan"],n:["Vettri","Franklin","Antony","Saravanan"],o:["Mohan","Manikandan"]},"2025-05-20":{d:["Vijay","Madan","Manikandan","Mohan"],n:["Vettri","Franklin","Antony"],o:["Ganesan","Saravanan"]}
+};
+const MNAME=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]; let editOn=false, readOnly=false, curY, curM, data={}, editD=null, editT=null;
+const D={ms:gid('ms'),ys:gid('ys'),sc:gid('sc'),eb:gid('eb'),es:gid('es'),dr:gid('dr'),sb:gid('sb'),em:gid('em'),mt:gid('mt'),scc:gid('scc'),mas:gid('mas'),sv:gid('em').querySelector('.sv'),cn:gid('em').querySelector('.cn')}; function gid(id){return document.getElementById(id);}
+function popSel(){const y=new Date().getFullYear();MNAME.forEach((n,i)=>D.ms.add(new Option(n,i)));for(let i=2023;i<=2028;i++)D.ys.add(new Option(i,i));const dy=2025,dm=3;D.ys.value=dy;D.ms.value=dm;curY=dy;curM=dm;}
+function getDates(y,m){const dt=[],s=new Date(Date.UTC(y,m,21)),e=new Date(Date.UTC(y,m+1,20));for(let d=s;d<=e;d.setUTCDate(d.getUTCDate()+1)){dt.push(d.toISOString().slice(0,10));}return dt;}
+function getKey(y,m){return `ss_Cv5_${y}_${String(m+1).padStart(2,'0')}`;}
+function loadData(y,m){if(readOnly)return;const key=getKey(y,m),stor=localStorage.getItem(key),dates=getDates(y,m);data={};if(stor){let p=null;try{p=JSON.parse(stor);}catch(e){}dates.forEach(d=>{data[d]=(p&&p[d])||{d:[],n:[],o:[],l:[]};});}else{dates.forEach(d=>{const df=DEFS[d];data[d]=df?{dayShift:df.d||[],nightShift:df.n||[],off:df.o||[],leave:df.l||[]}:{dayShift:[],nightShift:[],off:[],leave:[]};});}}
+function saveData(){if(readOnly)return;const key=getKey(curY,curM);try{const dt={};getDates(curY,curM).forEach(d=>{if(data[d])dt[d]=data[d];});localStorage.setItem(key,JSON.stringify(dt));}catch(e){alert("Save failed.");}}
+// *** UPDATED fmtDate FUNCTION ***
+function fmtDate(dS) { // dS is "YYYY-MM-DD"
     try {
-        localStorage.setItem(key, JSON.stringify(scheduleData));
-    } catch (e) {
-        console.error("Error saving schedule data to localStorage", e);
-        alert("Could not save schedule data. Storage might be full.");
+        const parts = dS.split('-'); // ["YYYY", "MM", "DD"]
+        if (parts.length !== 3) throw new Error("Invalid date string format");
+        const year = parseInt(parts[0], 10);
+        const monthIndex = parseInt(parts[1], 10) - 1; // Month is 0-indexed!
+        const day = parseInt(parts[2], 10);
+        // Create date using Date.UTC for reliability
+        const d = new Date(Date.UTC(year, monthIndex, day));
+        // Check if the created date is valid
+        if (isNaN(d.getTime())) throw new Error("Created date is invalid");
+        const oD = { month: 'short', day: 'numeric', timeZone: 'UTC' };
+        const oW = { weekday: 'short', timeZone: 'UTC' };
+        return {
+            d: d.toLocaleDateString('en-GB', oD), // Format date
+            w: d.toLocaleDateString('en-US', oW)  // Format weekday
+        };
+    } catch (error) {
+        //console.error(`Error formatting date string "${dS}":`, error); // Optional: for debugging
+        return { d: "Invalid", w: "Date" }; // Return error indicators
     }
 }
-
-function formatDateForDisplay(dateString) {
-     const date = new Date(dateString + 'T12:00:00Z'); // Use noon UTC to be safe
-     const optionsDate = { month: 'short', day: 'numeric', year: 'numeric' };
-     const formattedDate = date.toLocaleDateString('en-GB', optionsDate); // e.g., 21 Apr 2024
-     const optionsWeekday = { weekday: 'long' };
-     const weekday = date.toLocaleDateString('en-US', optionsWeekday); // e.g., Sunday
-     return { date: formattedDate, weekday: weekday };
-}
-
-// --- Password Handling ---
-function getAdminPassword() {
-    return localStorage.getItem(PASSWORD_STORAGE_KEY);
-}
-
-function setAdminPassword(newPassword) {
-    if (newPassword && newPassword.trim().length > 0) {
-         localStorage.setItem(PASSWORD_STORAGE_KEY, newPassword.trim());
-         alert("New admin password set successfully!");
-         return true;
-    } else {
-         alert("Password cannot be empty.");
-         return false;
-    }
-}
-
-function promptAndSetNewPassword(forceChange = false) {
-     // Use browser prompt for password setup/unlock as it's standard and simple here
-     const promptMsg = forceChange
-         ? `Initial login! Default code is "${DEFAULT_ADMIN_CODE}".\nPlease set YOUR new secure password:`
-         : "Enter admin password to enable editing:"; // Use this for subsequent unlocks too
-     let passwordInput = prompt(promptMsg);
-
-     if (passwordInput === null) { // User cancelled
-         editingEnabled = false;
-         renderSchedule(currentStartYear, currentStartMonth); // Update UI
-         return;
-     }
-
-     if (forceChange) { // Setting initial password
-         if (setAdminPassword(passwordInput)) {
-              editingEnabled = true; // Enable after successful set
-              alert("Editing enabled!");
-         } else {
-              editingEnabled = false; // Stay disabled if set failed
-         }
-     } else { // Unlocking
-         const storedPassword = getAdminPassword();
-         if (passwordInput === storedPassword) {
-             editingEnabled = true;
-             alert("Editing enabled!");
-         } else {
-             alert("Incorrect password.");
-             editingEnabled = false;
-         }
-     }
-     renderSchedule(currentStartYear, currentStartMonth); // Update UI immediately
-}
-
-
-// --- Rendering Logic ---
-function renderSchedule(startYear, startMonth) {
-    currentStartYear = startYear;
-    currentStartMonth = startMonth;
-    loadSchedule(startYear, startMonth); // Load data for the selected cycle
-
-    container.innerHTML = ''; // Clear previous cards
-    const datesInCycle = generateShiftPeriodDates(startYear, startMonth);
-
-    // Update header date range display
-    if (datesInCycle.length > 0) {
-        const firstDay = formatDateForDisplay(datesInCycle[0]);
-        const lastDay = formatDateForDisplay(datesInCycle[datesInCycle.length - 1]);
-        dateRangeDisplay.textContent = `${firstDay.date} - ${lastDay.date}`;
-    } else {
-         dateRangeDisplay.textContent = "Select Month/Year"; // Default if no dates
-    }
-
-    // Render cards for each date in the cycle
-    datesInCycle.forEach(dateStr => {
-        const dayCard = document.createElement('div');
-        dayCard.classList.add('day-card');
-        const { date: formattedDate, weekday } = formatDateForDisplay(dateStr);
-        const title = document.createElement('h3');
-        title.innerHTML = `<span>${formattedDate}</span> <span class="weekday">${weekday}</span>`;
-        dayCard.appendChild(title);
-
-        // Ensure dayData exists, even if empty (e.g., after clearing storage)
-        const dayData = scheduleData[dateStr] || { dayShift: [], nightShift: [], off: [], leave: [] };
-
-        // Create and append sections
-        dayCard.appendChild(createSectionDiv(dateStr, 'day', '☀️ Day Shift', dayData.dayShift, editingEnabled));
-        dayCard.appendChild(createSectionDiv(dateStr, 'night', '🌙 Night Shift', dayData.nightShift, editingEnabled));
-        dayCard.appendChild(createSectionDiv(dateStr, 'off', '🚫 Off', dayData.off, editingEnabled));
-        dayCard.appendChild(createSectionDiv(dateStr, 'leave', '🌴 Leave', dayData.leave, editingEnabled));
-
-        container.appendChild(dayCard);
-    });
-
-    // Update the editing button and status message
-    const storedPassword = getAdminPassword();
-     // Get CSS variables for colors
-    const rootStyles = getComputedStyle(document.documentElement);
-    const var_accent_day = rootStyles.getPropertyValue('--accent-day').trim(); // Often yellow/orange
-    const var_accent_off = rootStyles.getPropertyValue('--accent-off').trim(); // Often red
-    const var_text_secondary_dark = rootStyles.getPropertyValue('--text-secondary-dark').trim(); // Often gray
-
-
-    if (editingEnabled) {
-        editToggleButton.textContent = "Editing Enabled";
-        editToggleButton.disabled = true; // Keep disabled once enabled for this session
-        editStatusSpan.textContent = "Click sections to edit. (Refresh page to disable)";
-        editStatusSpan.style.color = var_accent_day; // Color indicating enabled
-    } else {
-        // Change button text based on whether a password has been set
-        editToggleButton.textContent = storedPassword ? "Unlock Editing" : "Set Admin Password";
-        editToggleButton.disabled = false;
-        editStatusSpan.textContent = storedPassword ? "Editing is locked." : "Admin password not set.";
-        editStatusSpan.style.color = storedPassword ? var_accent_off : var_text_secondary_dark; // Color indicating locked or no password
-    }
-}
-
-function createSectionDiv(date,type,title,staffList,isEditable){
-const sectionDiv=document.createElement('div');
-const baseClass=(type==='day'||type==='night')?'shift':type;
-sectionDiv.classList.add('section',`${baseClass}-section`);
-if(type==='day'||type==='night'){sectionDiv.classList.add(`${type}-shift`);}
-if(isEditable){
-sectionDiv.onclick=()=>editSection(date,type);
-sectionDiv.classList.add('editable');
-}
-const titleStrong=document.createElement('strong');
-titleStrong.textContent=title;
-sectionDiv.appendChild(titleStrong);
-if(staffList && staffList.length > 0){ // Check if staffList is not null/undefined and has elements
-    staffList.forEach(staff=>{
-        const span=document.createElement('span');
-        span.textContent=staff;
-        sectionDiv.appendChild(span);
-    });
-}else{
-    const span=document.createElement('span');
-    span.classList.add('empty');
-    // Get just the shift/section name without emoji
-    const sectionName = title.replace(/☀️|🌙|🚫|🌴/g,'').trim();
-    span.textContent=`No one assigned to ${sectionName}`;
-    sectionDiv.appendChild(span);
-}
-return sectionDiv;
-}
-
-// --- Modal Logic (Replaces prompt for editing sections) ---
-function showEditModal(dateStr, type) {
-    currentEditDate = dateStr;
-    currentEditType = type;
-
-    const dayData = scheduleData[dateStr] || { dayShift: [], nightShift: [], off: [], leave: [] };
-    let currentStaff;
-    let sectionTitleText;
-    if (type === 'off' || type === 'leave') {
-        currentStaff = dayData[type] || [];
-        sectionTitleText = type === 'off' ? '🚫 Off' : '🌴 Leave';
-    } else { // day or night shift
-        currentStaff = dayData[`${type}Shift`] || [];
-        sectionTitleText = type === 'day' ? '☀️ Day Shift' : '🌙 Night Shift';
-    }
-
-    modalSectionTitle.textContent = `Edit ${sectionTitleText} on ${formatDateForDisplay(dateStr).date}`;
-    staffInput.value = currentStaff.join(', ');
-    // Display available staff as suggestions - This will now show "Available staff: " as the list is empty
-    modalAvailableStaff.textContent = `Available staff: ${allStaff.join(', ')}`;
-
-    editModal.style.display = 'flex'; // Show the modal (using flex for centering)
-    // Use a timeout to ensure the modal is displayed before focusing
-    setTimeout(() => {
-        staffInput.focus(); // Focus the input field
-    }, 50); // Small delay
-}
-
-function hideEditModal() {
-    editModal.style.display = 'none'; // Hide the modal
-    currentEditDate = null;
-    currentEditType = null;
-    staffInput.value = ''; // Clear input
-}
-
-function saveModalChanges() {
-    const dateStr = currentEditDate;
-    const type = currentEditType;
-    const newStaffListString = staffInput.value;
-
-    // Process the input string into an array, trimming whitespace and removing empty entries
-    const newStaffArray = newStaffListString.split(',')
-                                        .map(s => s.trim())
-                                        .filter(s => s !== "");
-
-    // *** IMPORTANT: Validation against allStaff is REMOVED here.
-    // The entered names (after trimming and filtering empty) are saved directly.
-    // The 'allStaff' list in the code is only for display in the modal for suggestion.
-
-    if (!scheduleData[dateStr]) {
-         // This case should ideally not happen if loadSchedule initializes dates, but good safeguard
-         scheduleData[dateStr] = { dayShift: [], nightShift: [], off: [], leave: [] };
-     }
-
-    // Assign the processed list to the correct property
-    if (type === 'off' || type === 'leave') {
-        scheduleData[dateStr][type] = newStaffArray; // Use newStaffArray directly
-    } else { // day or night shift
-        scheduleData[dateStr][`${type}Shift`] = newStaffArray; // Use newStaffArray directly
-    }
-
-    saveSchedule(); // Save changes to localStorage
-    renderSchedule(currentStartYear, currentStartMonth); // Re-render the display
-    hideEditModal(); // Hide the modal after saving
-}
-
-// Function called when a section is clicked (only if editingEnabled)
-function editSection(dateStr, type){
-    if(!editingEnabled) return; // Ensure editing is enabled
-    showEditModal(dateStr, type); // Show the custom modal
-}
-
-// --- Event Listeners for Modal Buttons ---
-saveButton.addEventListener('click', saveModalChanges);
-cancelButton.addEventListener('click', hideEditModal);
-
-// Close modal if user clicks outside of the content (optional)
-// window.addEventListener('click', (event) => {
-//     if (event.target === editModal) {
-//         hideEditModal();
-//     }
-// });
-
-// --- Existing Event Listeners ---
-editToggleButton.addEventListener('click',()=>{
-    const storedPassword=getAdminPassword();
-    if(!storedPassword){
-        // If no password set, prompt to set one (using browser prompt)
-        promptAndSetNewPassword(true);
-    }else{
-        // If password set, prompt to unlock (using browser prompt)
-        promptAndSetNewPassword(false); // Pass false to indicate unlocking, not setting
-    }
-    // renderSchedule is called inside promptAndSetNewPassword
-});
-
-
-monthSelect.addEventListener('change',()=>{
-currentStartMonth=parseInt(monthSelect.value);
-renderSchedule(currentStartYear,currentStartMonth);
-});
-yearSelect.addEventListener('change',()=>{
-currentStartYear=parseInt(yearSelect.value);
-renderSchedule(currentStartYear,currentStartMonth);
-});
-document.addEventListener('DOMContentLoaded',()=>{
-populateSelectors();
-renderSchedule(currentStartYear,currentStartMonth);
-});
+// *** END OF UPDATED FUNCTION ***
+function getPwd(){return localStorage.getItem(PKEY);} function setPwd(p){if(p&&p.trim()){localStorage.setItem(PKEY,p.trim());return true;}return false;}
+function askPwd(force=false){const m=force?'Create pwd:':'Enter pwd:';let i=prompt(m);if(i===null){editOn=false;render(curY,curM);return;}if(force){editOn=setPwd(i);alert(editOn?'Pwd set.':'Cannot be empty.');}else{editOn=(i===getPwd());alert(editOn?'Enabled.':'Incorrect.');}render(curY,curM);}
+function shareLink(){const dates=getDates(curY,curM),dta={};let has=false;dates.forEach(d=>{if(data[d]){dta[d]=data[d];if(Object.values(dta[d]).some(a=>a.length>0))has=true;}});if(!has){alert("No assignments.");return;}try{const enc=btoa(encodeURIComponent(JSON.stringify(dta))),url=`${location.href.split('#')[0]}#${enc}`;if(url.length>1800)alert("Link long.");prompt("Copy link:",url);}catch(e){alert("Link failed.");}}
+function loadFromHash(){if(location.hash.length>1){try{const dta=JSON.parse(decodeURIComponent(atob(location.hash.substring(1))));if(dta&&typeof dta==='object'&&Object.keys(dta).length>0){data=dta;readOnly=true;const k=Object.keys(dta).sort()[0];if(k){const d=new Date(k+'T12Z');let m=d.getUTCMonth(),y=d.getUTCFullYear();if(d.getUTCDate()<21){m--;if(m<0){m=11;y--;}}if(Array.from(D.ys.options).some(o=>o.value==y)){D.ys.value=y;D.ms.value=m;curY=y;curM=m;}else{curY=parseInt(D.ys.value);curM=parseInt(D.ms.value);}}return true;}}catch(e){location.hash='';}}readOnly=false;return false;}
+function createSec(date,type,title,staff,edit){const dv=document.createElement('div'),base=type[0],ce=edit&&type!=='leave';dv.className=`sec ${type} ${ce?'ed':''}`;if(ce)dv.onclick=()=>editSec(date,type);dv.innerHTML=`<strong>${title}</strong>`;if(staff&&staff.length>0)staff.forEach(s=>dv.innerHTML+=`<span>${s}</span>`);else dv.innerHTML+=`<span class="em">None</span>`;return dv;}
+function render(y,m){loadData(y,m);curY=y;curM=m;D.sc.innerHTML='';const dates=getDates(y,m);if(dates.length>0){const f=fmtDate(dates[0]),l=fmtDate(dates[dates.length-1]);D.dr.textContent=`${f.d} - ${l.d}`;}else{D.dr.textContent="Select Month/Year";}dates.forEach(dS=>{const card=document.createElement('div');card.className='dc';const fmt=fmtDate(dS);card.innerHTML=`<h3><span class="dt">${fmt.d}</span><span class="wd">${fmt.w}</span></h3>`;const dt=data[dS]||{d:[],n:[],o:[],l:[]};const ae=!readOnly&&editOn;card.appendChild(createSec(dS,'d','☀️ Day',dt.dayShift||dt.d,ae));card.appendChild(createSec(dS,'n','🌙 Night',dt.nightShift||dt.n,ae));card.appendChild(createSec(dS,'o','🚫 Off',dt.off||dt.o,ae));card.appendChild(createSec(dS,'l','🌴 Leave',dt.leave||dt.l,false));D.sc.appendChild(card);});const pwd=getPwd();if(readOnly){D.eb.textContent="Read-Only";D.eb.disabled=true;D.es.textContent="Shared view.";D.sb.style.display='none';}else if(editOn){D.eb.textContent="Editing On";D.eb.disabled=true;D.es.textContent="Click to edit.";D.sb.style.display='';}else{D.eb.textContent=pwd?"Unlock":"Set Pwd";D.eb.disabled=false;D.es.textContent=pwd?"Locked.":"No Pwd.";D.sb.style.display='';}}
+function showModal(dS,type){editD=dS;editT=type;const dt=data[dS]||{},staff=[],title='';switch(type){case'd':staff=dt.dayShift||dt.d||[];title='☀️ Day';break;case'n':staff=dt.nightShift||dt.n||[];title='🌙 Night';break;case'o':staff=dt.off||dt.o||[];title='🚫 Off';break;default:return;}D.mt.textContent=`Edit ${title} on ${fmtDate(dS).d}`;D.scc.innerHTML='';if(STAFF.length>0){STAFF.forEach(n=>{const id=`s-${n.replace(/[^a-z0-9]/gi,'')}-${type}-${dS}`;D.scc.innerHTML+=`<div><input type=checkbox id=${id} value="${n}" ${staff.includes(n)?'checked':''}><label for=${id}>${n}</label></div>`;});D.mas.textContent='';}else{D.mas.textContent='No staff.';}D.em.style.display='flex';}
+function hideModal(){D.em.style.display='none';editD=null;editT=null;D.scc.innerHTML='';}
+function saveModal(){if(readOnly){hideModal();return;}const date=editD,type=editT,sel=[];D.scc.querySelectorAll('input:checked').forEach(c=>sel.push(c.value));if(!data[date])data[date]={d:[],n:[],o:[],l:[]};switch(type){case'd':data[date].dayShift=sel;break;case'n':data[date].nightShift=sel;break;case'o':data[date].off=sel;break;default:hideModal();return;}saveData();render(curY,curM);hideModal();}
+function editSec(d,t){if(!editOn||readOnly||t==='leave')return;showModal(d,t);}
+D.sv.addEventListener('click',saveModal); D.cn.addEventListener('click',hideModal); D.eb.addEventListener('click',()=>{if(!readOnly)askPwd(!getPwd());}); D.sb.addEventListener('click',shareLink); D.ms.addEventListener('change',()=>{curM=parseInt(D.ms.value);render(curY,curM);}); D.ys.addEventListener('change',()=>{curY=parseInt(D.ys.value);render(curY,curM);});
+document.addEventListener('DOMContentLoaded',()=>{popSel();if(loadFromHash()){alert("Shared link loaded.");}render(curY,curM);});
 </script>
 </body>
 </html>
